@@ -86,13 +86,13 @@ export function CompactIndexCard({ post, href, index }: { post: SitePost; href: 
 
 export function ArticleListCard({ post, href, index }: { post: SitePost; href: string; index: number }) {
   return (
-    <Link href={href} className={`group grid min-w-0 gap-5 overflow-hidden ${dc.surface.card} p-4 ${dc.motion.lift} sm:grid-cols-[220px_minmax(0,1fr)]`}>
-      <div className={`${dc.media.frame} aspect-[16/12] sm:aspect-auto sm:min-h-[190px]`}>
+    <Link href={href} className={`group grid min-w-0 gap-5 overflow-hidden rounded-[1.25rem] border ${pal.border} bg-white p-3 shadow-[0_12px_34px_rgba(15,23,42,0.07)] transition duration-300 hover:-translate-y-1 hover:shadow-[0_18px_55px_rgba(15,23,42,0.12)] sm:grid-cols-[220px_minmax(0,1fr)]`}>
+      <div className="relative aspect-[16/12] overflow-hidden rounded-[1rem] bg-[var(--slot4-media-bg)] sm:aspect-auto sm:min-h-[190px]">
         <img src={getEditablePostImage(post)} alt={post.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />
       </div>
       <div className="min-w-0 p-2 sm:py-4 sm:pr-5">
-        <p className={`${dc.type.eyebrow} ${pal.accentText}`}>Read {String(index + 1).padStart(2, '0')}</p>
-        <h2 className={`mt-3 line-clamp-3 text-2xl font-black leading-tight tracking-[-0.05em] ${pal.panelText} sm:text-3xl`}>{post.title}</h2>
+        <p className="text-xs font-black uppercase tracking-[0.14em] text-black/50">Article {String(index + 1).padStart(2, '0')}</p>
+        <h2 className={`mt-3 line-clamp-3 text-2xl font-black leading-tight tracking-normal ${pal.panelText} sm:text-3xl`}>{post.title}</h2>
         <p className={`mt-4 line-clamp-3 text-sm leading-7 ${pal.softMutedText}`}>{getEditableExcerpt(post, 180)}</p>
         <span className={`mt-5 inline-flex items-center gap-2 text-sm font-black ${pal.panelText}`}>Open article <ArrowRight className="h-4 w-4" /></span>
       </div>
