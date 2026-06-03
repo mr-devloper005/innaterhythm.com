@@ -1,13 +1,12 @@
 import Link from 'next/link'
 import type { CSSProperties } from 'react'
 import { notFound } from 'next/navigation'
-import { ArrowLeft, Bookmark, Building2, Camera, CheckCircle2, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, Tag, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Bookmark, Building2, Camera, Download, ExternalLink, FileText, Globe2, Mail, MapPin, MessageCircle, Phone, UserRound } from 'lucide-react'
 import { buildPostMetadata, buildTaskMetadata } from '@/lib/seo'
 import { buildPostUrl, fetchArticleComments, fetchTaskPostBySlug, fetchTaskPosts } from '@/lib/task-data'
-import { getTaskConfig, SITE_CONFIG, type TaskKey } from '@/lib/site-config'
+import { getTaskConfig, type TaskKey } from '@/lib/site-config'
 import type { SitePost } from '@/lib/site-connector'
 import { EditableSiteShell } from '@/editable/shell/EditableSiteShell'
-import { getVisualPreset, visualSystem } from '@/editable/theme/visual-system'
 
 export const revalidate = 3
 
@@ -105,8 +104,7 @@ const mapSrcFor = (post: SitePost) => {
 }
 
 export function TaskDetailView({ task, post, related, comments = [] }: { task: TaskKey; post: SitePost; related: SitePost[]; comments?: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
-  const preset = getVisualPreset(visualSystem.recommendedPreset as any)
-  const detailVars = { '--detail-bg': preset.colors.background, '--detail-text': preset.colors.foreground, '--detail-surface': preset.colors.surface, '--detail-accent': preset.colors.accent } as CSSProperties
+  const detailVars = { '--detail-bg': '#f4f5f6', '--detail-text': '#111111', '--detail-surface': '#ffffff', '--detail-accent': '#d46f4d' } as CSSProperties
 
   return (
     <EditableSiteShell>
@@ -135,16 +133,39 @@ function BackLink({ task }: { task: TaskKey }) {
 function ArticleDetail({ post, related, comments }: { post: SitePost; related: SitePost[]; comments: Array<{ id: string; name: string; comment: string; createdAt: string }> }) {
   const images = getImages(post)
   return (
-    <section className="mx-auto grid max-w-[var(--editable-container)] gap-8 px-4 py-10 sm:px-6 lg:grid-cols-[minmax(0,1fr)_350px] lg:px-8 lg:py-16">
-      <article className="min-w-0 rounded-[2.7rem] border border-[var(--editable-border)] bg-[var(--detail-surface)] p-5 shadow-[0_30px_90px_rgba(15,23,42,0.09)] sm:p-8 lg:p-12">
+    <section className="mx-auto max-w-[1200px] px-4 py-10 sm:px-6 lg:px-8 lg:py-14">
+      <div className="mx-auto max-w-4xl">
         <BackLink task="article" />
-        <p className="mt-8 text-xs font-black uppercase tracking-[0.28em] text-[var(--detail-accent)]">{categoryOf(post, 'Article')}</p>
-        <h1 className="mt-4 text-4xl font-black leading-[0.98] tracking-[-0.07em] sm:text-5xl lg:text-7xl">{post.title}</h1>
-        {images[0] ? <img src={images[0]} alt="" className="mt-8 max-h-[620px] w-full rounded-[2rem] object-cover" /> : null}
-        <BodyContent post={post} />
-        <EditableComments slug={post.slug} comments={comments} />
-      </article>
-      <RelatedPanel task="article" post={post} related={related} />
+        <div className="mt-8 flex flex-wrap items-center gap-3">
+          <span className="rounded-full bg-[#efe7ff] px-4 py-2 text-xs font-black text-black">{categoryOf(post, 'Article')}</span>
+          <span className="text-xs font-black uppercase tracking-[0.16em] text-black/50">Article</span>
+        </div>
+        <h1 className="mt-5 text-4xl font-black leading-[1.04] tracking-normal sm:text-5xl lg:text-6xl">{post.title}</h1>
+      </div>
+      {images[0] ? (
+        <div className="mx-auto mt-8 max-w-5xl overflow-hidden rounded-[1.25rem] border border-[var(--editable-border)] bg-white shadow-sm">
+          <img src={images[0]} alt="" className="max-h-[620px] w-full object-cover" />
+        </div>
+      ) : null}
+      <div className="mt-10 grid gap-10 lg:grid-cols-[minmax(0,680px)_320px] lg:justify-center">
+        <article className="min-w-0">
+          <BodyContent post={post} />
+          <div className="mt-10 flex flex-wrap items-center justify-between gap-4 border-y border-[var(--editable-border)] py-5">
+            <div className="flex flex-wrap gap-2">
+              {[categoryOf(post, 'Article'), ...(post.tags || []).slice(0, 3)].filter(Boolean).map((tag) => (
+                <Link key={tag} href={`/search?q=${encodeURIComponent(tag)}`} className="rounded-xl border border-[var(--editable-border)] bg-white px-4 py-2 text-xs font-black">
+                  {tag}
+                </Link>
+              ))}
+            </div>
+            <Link href="/article" className="inline-flex items-center gap-2 rounded-full bg-black px-5 py-3 text-sm font-black text-white">
+              More articles <ArrowRight className="h-4 w-4" />
+            </Link>
+          </div>
+          <EditableComments slug={post.slug} comments={comments} />
+        </article>
+        <RelatedPanel task="article" post={post} related={related} />
+      </div>
     </section>
   )
 }
@@ -318,7 +339,7 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
 }
 
 function BodyContent({ post, compact = false }: { post: SitePost; compact?: boolean }) {
-  return <div className={`article-content mt-8 max-w-none ${compact ? 'text-base leading-8' : 'text-lg leading-9'} opacity-80`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
+  return <div className={`article-content max-w-none ${compact ? 'text-base leading-8' : 'text-base leading-8 sm:text-lg sm:leading-9'} opacity-85`} dangerouslySetInnerHTML={{ __html: formatPlainText(getBody(post)) }} />
 }
 
 function InfoGrid({ items }: { items: Array<[string, string, typeof MapPin]> }) {
@@ -379,20 +400,10 @@ function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey;
   const taskConfig = getTaskConfig(task)
   return (
     <aside className="min-w-0 space-y-5">
-      {!compact ? (
-        <div className="rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5 backdrop-blur">
-          <p className="text-xs font-black uppercase tracking-[0.22em] opacity-55">About this post</p>
-          <div className="mt-4 grid gap-3 text-sm font-bold opacity-75">
-            <p className="inline-flex items-center gap-2"><Tag className="h-4 w-4" /> Task: {taskConfig?.label || task}</p>
-            <p className="inline-flex items-center gap-2"><CheckCircle2 className="h-4 w-4" /> Site: {SITE_CONFIG.name}</p>
-            {post.publishedAt ? <p>Published: {new Date(post.publishedAt).toLocaleDateString()}</p> : null}
-          </div>
-        </div>
-      ) : null}
       {related.length ? (
-        <div className="rounded-[2rem] border border-[var(--editable-border)] bg-white/70 p-5 backdrop-blur">
+        <div className="rounded-[1.25rem] border border-[var(--editable-border)] bg-white/80 p-5 backdrop-blur lg:sticky lg:top-28">
           <div className="flex items-center justify-between gap-3">
-            <h2 className="text-lg font-black tracking-[-0.04em]">More like this</h2>
+            <h2 className="text-lg font-black tracking-normal">{task === 'article' ? 'Weekly trending' : 'More like this'}</h2>
             <Link href={taskConfig?.route || '/'} className="text-xs font-black uppercase tracking-[0.16em] opacity-55">View all</Link>
           </div>
           <div className="mt-5 grid gap-3">
