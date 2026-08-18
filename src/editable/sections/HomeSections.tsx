@@ -118,7 +118,7 @@ export function EditableStoryRail({ primaryTask, primaryRoute, posts }: HomeSect
           </div>
         </div>
         <div className="mt-5 flex gap-4 overflow-x-auto pb-3 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-          {railPosts.map((post, index) => (
+          {railPosts.map((post) => (
             <Link key={post.id || post.slug} href={postHref(primaryTask, post, primaryRoute)} className="group w-[210px] shrink-0">
               <div className="relative aspect-[4/3] overflow-hidden rounded-[1.05rem] bg-[var(--slot4-media-bg)]">
                 <img src={getEditablePostImage(post)} alt={post.title} className="absolute inset-0 h-full w-full object-cover transition duration-500 group-hover:scale-105" />

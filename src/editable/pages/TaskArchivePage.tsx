@@ -19,6 +19,30 @@ export const taskMetadata = (task: TaskKey, path: string) =>
     description: taskPageMetadata[task]?.description,
   })
 
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  ndash: '–', mdash: '—', bull: '•', hellip: '…', prime: '′', Prime: '″',
+  lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201c', rdquo: '\u201d', sbquo: '\u201a', bdquo: '\u201e',
+  trade: '™', copy: '©', reg: '®', deg: '°', micro: 'µ', middot: '·',
+  laquo: '«', raquo: '»', frac14: '¼', frac12: '½', frac34: '¾',
+  times: '×', divide: '÷', plusmn: '±', para: '¶', sect: '§', euro: '€',
+  pound: '£', yen: '¥', cent: '¢', larr: '←', rarr: '→', uarr: '↑', darr: '↓',
+}
+const _fromCodePoint = (code: number, fallback: string) => { try { return code > 0 && code < 0x10ffff ? String.fromCodePoint(code) : fallback } catch { return fallback } }
+const _decodeEntities = (value: string) => value
+  .replace(/&#x([0-9a-f]+);/gi, (m, hex) => _fromCodePoint(parseInt(hex, 16), m))
+  .replace(/&#(\d+);/g, (m, dec) => _fromCodePoint(Number(dec), m))
+  .replace(/&([a-z]+\d*);/gi, (m, name) => HTML_ENTITIES[name] ?? m)
+const _removeTags = (value: string) => value
+  .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+  .replace(/<!--[\s\S]*?-->/g, ' ')
+  .replace(/<\/?(p|div|br|hr|li|ul|ol|tr|td|th|h[1-6]|blockquote|section|article|header|footer|nav|main|aside|figure|figcaption|details|summary|dt|dd)\b[^>]*>/gi, ' ')
+  .replace(/<[^>]*>/g, ' ')
+const toPlainText = (value: unknown) => {
+  if (typeof value !== 'string' || !value) return ''
+  return _removeTags(_decodeEntities(_removeTags(value))).replace(/\s+/g, ' ').trim()
+}
+
 const getContent = (post: SitePost) => post.content && typeof post.content === 'object' ? post.content as Record<string, unknown> : {}
 const asText = (value: unknown) => typeof value === 'string' ? value.trim() : ''
 const isUrl = (value: string) => value.startsWith('/') || /^https?:\/\//i.test(value)
@@ -35,7 +59,7 @@ const getImages = (post: SitePost) => {
 const placeholder = '/placeholder.svg?height=900&width=1200'
 const getImage = (post: SitePost) => getImages(post)[0] || placeholder
 const getCategory = (post: SitePost, fallback: string) => asText(getContent(post).category) || post.tags?.[0] || fallback
-const getSummary = (post: SitePost) => post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || asText(getContent(post).body)
+const getSummary = (post: SitePost) => toPlainText(post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || asText(getContent(post).body))
 const getField = (post: SitePost, keys: string[]) => {
   const content = getContent(post)
   for (const key of keys) {
