@@ -35,13 +35,8 @@ export function EditableNavbar() {
     <header style={navVars} className="sticky top-0 z-50 border-b border-[var(--editable-border)] bg-[var(--editable-nav-bg)]/95 text-[var(--editable-nav-text)] backdrop-blur-2xl">
       <nav className="mx-auto flex min-h-[82px] w-full max-w-[var(--editable-container)] items-center gap-4 px-4 sm:px-6 lg:px-8">
         <Link href="/" className="group flex shrink-0 items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center overflow-hidden rounded-2xl border border-[var(--editable-border)] bg-white shadow-sm transition-transform group-hover:-rotate-2">
-            <img src="/favicon.png?v=20260413" alt={globalContent.site.name} className="h-8 w-8 object-contain" />
-          </span>
-          <span className="min-w-0">
-            <span className="block max-w-[190px] truncate text-lg font-black tracking-normal">{globalContent.site.name}</span>
-            <span className="hidden max-w-[220px] truncate text-[10px] font-bold uppercase tracking-[0.14em] opacity-55 sm:block">{globalContent.nav.tagline || globalContent.site.tagline}</span>
-          </span>
+          <img src="/favicon.png?v=20260413" alt={globalContent.site.name} className="h-11 w-11 object-contain" />
+          <span className="block max-w-[190px] truncate text-lg font-black tracking-normal">{globalContent.site.name}</span>
         </Link>
 
         <div className="hidden items-center gap-1 lg:ml-6 lg:flex">
