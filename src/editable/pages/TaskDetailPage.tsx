@@ -92,7 +92,31 @@ const formatPlainText = (raw: string) => {
     .join('')
 }
 
-const summaryText = (post: SitePost) => post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || ''
+const HTML_ENTITIES: Record<string, string> = {
+  amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ',
+  ndash: '–', mdash: '—', bull: '•', hellip: '…', prime: '′', Prime: '″',
+  lsquo: '\u2018', rsquo: '\u2019', ldquo: '\u201c', rdquo: '\u201d', sbquo: '\u201a', bdquo: '\u201e',
+  trade: '™', copy: '©', reg: '®', deg: '°', micro: 'µ', middot: '·',
+  laquo: '«', raquo: '»', frac14: '¼', frac12: '½', frac34: '¾',
+  times: '×', divide: '÷', plusmn: '±', para: '¶', sect: '§', euro: '€',
+  pound: '£', yen: '¥', cent: '¢', larr: '←', rarr: '→', uarr: '↑', darr: '↓',
+}
+const _fromCodePoint = (code: number, fallback: string) => { try { return code > 0 && code < 0x10ffff ? String.fromCodePoint(code) : fallback } catch { return fallback } }
+const _decodeEntities = (value: string) => value
+  .replace(/&#x([0-9a-f]+);/gi, (m, hex) => _fromCodePoint(parseInt(hex, 16), m))
+  .replace(/&#(\d+);/g, (m, dec) => _fromCodePoint(Number(dec), m))
+  .replace(/&([a-z]+\d*);/gi, (m, name) => HTML_ENTITIES[name] ?? m)
+const _removeTags = (value: string) => value
+  .replace(/<(script|style)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+  .replace(/<!--[\s\S]*?-->/g, ' ')
+  .replace(/<\/?(p|div|br|hr|li|ul|ol|tr|td|th|h[1-6]|blockquote|section|article|header|footer|nav|main|aside|figure|figcaption|details|summary|dt|dd)\b[^>]*>/gi, ' ')
+  .replace(/<[^>]*>/g, ' ')
+const toPlainText = (value: unknown) => {
+  if (typeof value !== 'string' || !value) return ''
+  return _removeTags(_decodeEntities(_removeTags(value))).replace(/\s+/g, ' ').trim()
+}
+
+const summaryText = (post: SitePost) => toPlainText(post.summary || asText(getContent(post).description) || asText(getContent(post).excerpt) || '')
 const categoryOf = (post: SitePost, fallback: string) => asText(getContent(post).category) || post.tags?.[0] || fallback
 const mapSrcFor = (post: SitePost) => {
   const address = getField(post, ['address', 'location', 'city'])
@@ -164,7 +188,7 @@ function ArticleDetail({ post, related, comments }: { post: SitePost; related: S
           </div>
           <EditableComments slug={post.slug} comments={comments} />
         </article>
-        <RelatedPanel task="article" post={post} related={related} />
+        <RelatedPanel task="article" related={related} />
       </div>
     </section>
   )
@@ -200,7 +224,7 @@ function ListingDetail({ post, related }: { post: SitePost; related: SitePost[] 
         <aside className="space-y-5">
           {mapSrc ? <MapBox src={mapSrc} label={address || post.title} /> : <ContactAction website={website} phone={phone} email={email} />}
           {mapSrc ? <ContactAction website={website} phone={phone} email={email} /> : null}
-          <RelatedPanel task="listing" post={post} related={related} compact />
+          <RelatedPanel task="listing" related={related} />
         </aside>
       </div>
     </section>
@@ -235,7 +259,7 @@ function ClassifiedDetail({ post, related }: { post: SitePost; related: SitePost
         <ImageStrip images={images} label="Offer images" large />
         <BodyContent post={post} />
         <ContactAction website={website} phone={phone} email={email} />
-        <RelatedPanel task="classified" post={post} related={related} />
+        <RelatedPanel task="classified" related={related} />
       </article>
     </section>
   )
@@ -262,7 +286,7 @@ function ImageDetail({ post, related }: { post: SitePost; related: SitePost[] })
           ))}
         </div>
       </div>
-      <div className="mt-10"><RelatedPanel task="image" post={post} related={related} /></div>
+      <div className="mt-10"><RelatedPanel task="image" related={related} /></div>
     </section>
   )
 }
@@ -279,7 +303,7 @@ function BookmarkDetail({ post, related }: { post: SitePost; related: SitePost[]
         {website ? <Link href={website} target="_blank" rel="noreferrer" className="mt-8 inline-flex items-center gap-2 rounded-full bg-[var(--detail-text)] px-5 py-3 text-sm font-black text-[var(--detail-bg)]">Open saved resource <ExternalLink className="h-4 w-4" /></Link> : null}
         <BodyContent post={post} />
       </article>
-      <RelatedPanel task="sbm" post={post} related={related} />
+      <RelatedPanel task="sbm" related={related} />
     </section>
   )
 }
@@ -308,7 +332,7 @@ function PdfDetail({ post, related }: { post: SitePost; related: SitePost[] }) {
           </div>
         ) : null}
       </article>
-      <RelatedPanel task="pdf" post={post} related={related} />
+      <RelatedPanel task="pdf" related={related} />
     </section>
   )
 }
@@ -332,7 +356,7 @@ function ProfileDetail({ post, related }: { post: SitePost; related: SitePost[] 
       <article className="rounded-[2.7rem] border border-[var(--editable-border)] bg-white p-7 shadow-sm sm:p-10">
         <BodyContent post={post} />
         <ImageStrip images={images.slice(1)} label="Profile gallery" />
-        <RelatedPanel task="profile" post={post} related={related} />
+        <RelatedPanel task="profile" related={related} />
       </article>
     </section>
   )
@@ -396,7 +420,7 @@ function BadgeLine({ label, value }: { label: string; value: string }) {
   return <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/15 bg-white/10 px-4 py-3 text-sm"><span className="font-black uppercase tracking-[0.16em] opacity-60">{label}</span><span className="font-black">{value}</span></div>
 }
 
-function RelatedPanel({ task, post, related, compact = false }: { task: TaskKey; post: SitePost; related: SitePost[]; compact?: boolean }) {
+function RelatedPanel({ task, related }: { task: TaskKey; related: SitePost[] }) {
   const taskConfig = getTaskConfig(task)
   return (
     <aside className="min-w-0 space-y-5">
